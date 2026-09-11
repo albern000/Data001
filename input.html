@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Input</title>
+    <!-- Library untuk PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+        body{background:#323038;min-height:100vh;padding:30px;display:flex;align-items:center;justify-content:center}
+        .card{background:#403e46;padding:35px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.3);width:100%;max-width:420px}
+        h2{color:white;text-align:center;margin-bottom:25px}
+        label{color:white;display:block;margin-bottom:8px;font-weight:bold}
+        input{width:100%;padding:14px;margin-bottom:20px;border:none;border-radius:6px;background:#56545e;color:white;font-size:15px}
+        input::placeholder{color:#b9b7c0}
+        button{width:100%;padding:14px;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;transition:.3s;margin-bottom:10px}
+        .btn-simpan{background:#7c7985;color:white}
+        .btn-simpan:hover{background:#8e8b99}
+        .btn-hapus{background:#c0392b;color:white}
+        .btn-hapus:hover{background:#e74c3c}
+        .btn-pdf{background:#e67e22;color:white}
+        .btn-pdf:hover{background:#f39c12}
+        .btn-pindah{background:#56545e;color:white;margin-top:10px}
+        .btn-pindah:hover{background:#63616c}
+        .pemisah{height:1px;background:#56545e;margin:20px 0}
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>Input Data</h2>
+    <label>Nama</label>
+    <input type="text" id="nama" placeholder="Masukkan nama...">
+    <label>Jumlah Poin</label>
+    <input type="number" id="poin" placeholder="Masukkan poin...">
+    <button class="btn-simpan" onclick="simpanData()">Kirim</button>
+
+    <div class="pemisah"></div>
+
+    <h2 style="font-size:18px;margin-bottom:15px">Hapus Data</h2>
+    <label>Nama yang mau dihapus</label>
+    <input type="text" id="namaHapus" placeholder="Ketik nama...">
+    <button class="btn-hapus" onclick="hapusData()">Hapus</button>
+
+    <div class="pemisah"></div>
+
+    <h2 style="font-size:18px;margin-bottom:15px">Download Data</h2>
+    <button class="btn-pdf" onclick="downloadPDF()">Download PDF</button>
+
+    <div class="pemisah"></div>
+
+    <button class="btn-pindah" onclick="location.href='output.html'">Buka Halaman Output</button>
+</div>
+
+<script>
+    let { jsPDF } = window.jspdf;
+    let data = JSON.parse(localStorage.getItem('dataPoin')) || [];
+
+    function simpanData(){
+        let n = document.getElementById('nama').value.trim();
+        let p = document.getElementById('poin').value.trim();
+        if(!n||!p){alert(' Lengkapi semua data!');return}
+        let ketemu = false;
+        for(let i=0;i<data.length;i++){
+            if(data[i].nama.toLowerCase() === n.toLowerCase()){
+                data[i].poin = parseInt(data[i].poin) + parseInt(p);
+                ketemu = true; break;
+            }
+        }
+        if(!ketemu) data.push({nama:n, poin:p});
+        data.sort((a,b)=>b.poin - a.poin);
+        localStorage.setItem('dataPoin', JSON.stringify(data));
+        document.getElementById('nama').value='';
+        document.getElementById('poin').value='';
+        alert('Data berhasil disimpan!');
+    }
+
+    function hapusData(){
+        let n = document.getElementById('namaHapus').value.trim();
+        if(!n){alert('Masukkan nama yang mau dihapus!');return}
+        let indeks = -1;
+        for(let i=0;i<data.length;i++){
+            if(data[i].nama.toLowerCase() === n.toLowerCase()){
+                indeks = i; break;
+            }
+        }
+        if(indeks === -1){alert('Nama tidak ditemukan!');return}
+        if(confirm(`Yakin mau hapus "${data[indeks].nama}"?`)){
+            data.splice(indeks,1);
+            localStorage.setItem('dataPoin', JSON.stringify(data));
+            document.getElementById('namaHapus').value='';
+            alert('✅ Data berhasil dihapus!');
+        }
+    }
+
+    function downloadPDF(){
+        if(data.length===0){alert('⚠️ Belum ada data untuk didownload!');return}
+        
+        const doc = new jsPDF();
+        
+        // Judul
+        doc.setFontSize(18);
+        doc.setTextColor(44, 62, 80);
+        doc.text("DAFTAR POIN", 105, 25, { align: "center" });
+        
+        // Tanggal
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("Tanggal: " + new Date().toLocaleString('id-ID'), 105, 35, { align: "center" });
+        
+        // Garis pemisah
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, 42, 190, 42);
+        
+        // Header tabel
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.setFont("helvetica", "bold");
+        doc.text("No", 25, 55);
+        doc.text("Nama", 45, 55);
+        doc.text("Poin", 165, 55);
+        
+        doc.line(20, 60, 190, 60);
+        
+        // Isi data
+        doc.setFont("helvetica", "normal");
+        let y = 70;
+        data.forEach((x,i)=>{
+            if(y > 280) { doc.addPage(); y = 30; } // halaman baru jika penuh
+            doc.text(`${i+1}`, 25, y);
+            doc.text(`${x.nama}`, 45, y);
+            doc.text(`${x.poin}`, 165, y, { align: "right" });
+            y += 10;
+        });
+        
+        // Simpan PDF
+        doc.save("Daftar_Poin.pdf");
+        alert('✅ PDF berhasil didownload!');
+    }
+</script>
+</body>
+</html>

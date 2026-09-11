@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halaman Output</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+        body{background:#323038;min-height:100vh;padding:30px}
+        .container{max-width:550px;margin:0 auto}
+        h2{color:white;text-align:center;margin-bottom:25px}
+        .card{background:#403e46;padding:25px;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.3);margin-bottom:15px}
+        .header{display:flex;background:#7c7985;padding:12px;border-radius:6px;font-weight:bold;color:white;margin-bottom:10px}
+        .baris{display:flex;background:#56545e;padding:12px;border-radius:6px;color:white;margin-bottom:8px}
+        .baris:hover{background:#63616c}
+        .no{width:15%;text-align:center;font-weight:bold}
+        .nm{width:55%}
+        .p{width:30%;text-align:right;font-weight:bold}
+        .btn-kembali{width:100%;padding:14px;border:none;border-radius:6px;font-size:16px;font-weight:bold;cursor:pointer;transition:.3s;background:#56545e;color:white}
+        .btn-kembali:hover{background:#63616c}
+        .kosong{color:#b9b7c0;text-align:center;padding:30px}
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>info data</h2>
+    <div class="card">
+        <div class="header">
+            <div class="no">No</div>
+            <div class="nm">Nama</div>
+            <div class="p">Poin</div>
+        </div>
+        <div id="hasil"></div>
+    </div>
+    <button class="btn-kembali" onclick="location.href='input.html'">Buka Halaman Input</button>
+</div>
+
+<script>
+    function ambilData(){
+        let data = JSON.parse(localStorage.getItem('dataPoin')) || [];
+        let html='';
+        if(data.length===0){
+            html='<p class="kosong">Belum ada data</p>';
+        }else{
+            data.forEach((x,i)=>{
+                html += `<div class="baris"><div class="no">${i+1}</div><div class="nm">${x.nama}</div><div class="p">${x.poin}</div></div>`
+            })
+        }
+        document.getElementById('hasil').innerHTML=html;
+    }
+    ambilData();
+    setInterval(ambilData, 1000);
+</script>
+</body>
+</html>
